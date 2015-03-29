@@ -1,76 +1,57 @@
-/* global _ */
-var sudoku2 = (function (m) {
+var sudoku = (function (m) {
    'use strict';
    var
       DIMSQRT = 3,
       DIM = DIMSQRT * DIMSQRT;
    var
-      cntfilled = 0,
-      cntset = 0,
-      usedInRow = {},
-      usedInCol = {},
-      usedInSqr = {},
-      fld = [];
+      cntset = 0, // just info
+      fld = [],
+      used = [];
 
-   var init = function () {
-      m.forEach(function (s, r) {
-         fld.push([]);
-         s.split('').forEach(function (n, c) {
-            fld[r].push(0);
-            setVal(r, c, Number(n));
-         });
+   m.forEach(function (s, r) {  // init fld
+      s.split('').forEach(function (v, c) {
+         setVal(r, c, Number(v));
       });
-      cntset = 0;
-   }();
-
-   function sqrKey(r, c, v) {
-      return 'r:' + Math.floor(r / DIMSQRT) + 'c:' + Math.floor(c / DIMSQRT) + 'v:' + v;
-   }
-
-   function setUsedFlags(r, c, v, b) {
-      usedInRow['r:' + r + 'v:' + v] = b;
-      usedInCol['c:' + c + 'v:' + v] = b;
-      usedInSqr[sqrKey(r, c, v)] = b;
-   }
-
-   function setVal(r, c, v) {
-      cntset++; // just for info!
-      cntfilled++;
-      setUsedFlags(r, c, v, true);
-      fld[r][c] = v;
-   }
-
-   function unsetVal(r, c) {
-      var v = fld[r][c];
-      setUsedFlags(r, c, v, false);
-      fld[r][c] = 0;
-      cntfilled--;
-   }
-
-   function isPossibleValue(r, c, v) {
-      return !usedInRow['r:' + r + 'v:' + v] && !usedInCol['c:' + c + 'v:' + v] && !usedInSqr[sqrKey(r, c, v)];
-   }
+   });
 
    function dump() {
       var s = '';
-      fld.forEach(function (r) {
-         r.forEach(function (n) {
+      fld.forEach(function (row) {
+         row.forEach(function (n) {
             s += n + ' ';
          });
          s += '\n';
       });
-      console.log('DMPFIELD:\ncntset:' + cntset + '\n' + s + '\n');
+      console.log('FIELD:\ncntset:' + cntset + '\n' + s + '\n');
+   }
+
+   function setUsedFlags(r, c, v, b) {
+      used['r:' + r + ':' + v] = used['c:' + c + ':' + v] = used[Math.floor(r / DIMSQRT) + ':' + Math.floor(c / DIMSQRT) + ':' + v] = b;
+   }
+
+   function setVal(r, c, v) {
+      cntset++; // just for info!
+      if( !fld[r] ) fld[r] = [];
+      fld[r][c] = v;
+      setUsedFlags(r, c, v, true);
+   }
+
+   function unsetVal(r, c) {
+      setUsedFlags(r, c, fld[r][c], false);
+      fld[r][c] = 0;
+   }
+
+   function possibleValues(r, c) {
+      return _.range(1, DIM + 1).filter(function (v) {
+         return !used['r:' + r + ':' + v] && !used['c:' + c + ':' + v] && !used[Math.floor(r / DIMSQRT) + ':' + Math.floor(c / DIMSQRT) + ':' + v];
+      });
    }
 
    function fill(r, c) {
       if (r >= DIM) return dump();
       if (c >= DIM) return fill(r + 1, 0);
       if (fld[r][c] !== 0) return fill(r, c + 1);
-
-      var possibleVals = _.range(1, DIM + 1).filter(function (v) { // 
-         return isPossibleValue(r, c, v);
-      });
-      possibleVals.forEach(
+      possibleValues(r, c).forEach(
          function (v) {
             setVal(r, c, v);
             fill(r, c + 1);
@@ -80,11 +61,11 @@ var sudoku2 = (function (m) {
    }
 
    function solve() {
+      dump();
       fill(0, 0);
    }
 
    return {
-      dump: dump,
       solve: solve
    };
 });
