@@ -31,7 +31,7 @@ var sudoku = (function (m) {
 
    function setVal(r, c, v) {
       cntset++; // just for info!
-      if( !fld[r] ) fld[r] = [];
+      if (!fld[r]) fld[r] = [];
       fld[r][c] = v;
       setUsedFlags(r, c, v, true);
    }
@@ -51,13 +51,11 @@ var sudoku = (function (m) {
       if (r >= DIM) return dump();
       if (c >= DIM) return fill(r + 1, 0);
       if (fld[r][c] !== 0) return fill(r, c + 1);
-      possibleValues(r, c).forEach(
-         function (v) {
-            setVal(r, c, v);
-            fill(r, c + 1);
-            unsetVal(r, c);
-         }
-      );
+      possibleValues(r, c).forEach(function (v) {
+         setVal(r, c, v);
+         fill(r, c + 1);
+         unsetVal(r, c);
+      });
    }
 
    function solve() {
