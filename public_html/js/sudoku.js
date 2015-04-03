@@ -16,7 +16,8 @@ var sudoku = function(){
       });
       return res;
    }
-   function dump(msg,fld) {
+   
+    function dump(msg,fld) {
       var s = '';
       fld.forEach(function(v){s+=v;});
       console.log( msg + ':' + s + '\n');
@@ -33,8 +34,8 @@ var sudoku = function(){
    };
 };
 
-//sudoku().doit(einfach);
+sudoku().doit(einfach);
 sudoku().doit(expert1);
-//sudoku().doit(expert2);
-//sudoku().doit(expert3);
-//sudoku().doit(extrem);
+sudoku().doit(expert2);
+sudoku().doit(expert3);
+sudoku().doit(extrem);
