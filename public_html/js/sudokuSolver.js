@@ -5,7 +5,7 @@ var sudokuSolver = (function () { // sudoku as array vec = [ 0, 3, 5, ...]
       DIMSQR = DIM * DIM, //  81
       VALS = _.range(1, DIM + 1), //  [1,2,3,...,9]
       ROW = _.range(DIMSQR).map(function (n) { return  Math.floor(n / DIM); }),
-      COL = _.range(DIMSQR).map(function (n) { return  Math.floor(n % DIM) + ':'; }),
+      COL = _.range(DIMSQR).map(function (n) { return  Math.floor(n % DIM); }),
       BLK = _.range(DIMSQR).map(function (n) { return  Math.floor(ROW[n]/DIMSQRT) * DIMSQRT + Math.floor(COL[n]/DIMSQRT); });
    
    function setUsedFlags(m, n, v, b) {
