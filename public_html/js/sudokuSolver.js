@@ -49,7 +49,7 @@ var sudokuSolver = (function () {
 
    function getBestCandidates(m) {
       var minLength = 100;
-      var bestCandidates = null;
+      var bestCandidates = {n:0,cand:[]};
       for (var i = 0; i < DIMSQR; i++)
          if (m.fld[i] === 0) {
             var c = getCandidates(m, i);
@@ -85,11 +85,11 @@ var sudokuSolver = (function () {
          if (m.cnt===DIMSQR) return res = _.extend([], m.fld);
 
          var c = getBestCandidates(m);
-         if( c ) c.cand.forEach(function (v) {
-            setVal(m, c.n, v);
+         for( var i=0; i < c.cand.length; i++){
+            setVal(m, c.n, c.cand[i]);
             fill(m);
             if( !res ) unsetVal(m, c.n);
-         });
+         };
          undo.forEach(function (n) {
             if( !res ) unsetVal(m, n);
          });

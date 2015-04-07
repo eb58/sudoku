@@ -61,10 +61,11 @@ var testset2 = [
    '1.......2.9.4...5...6...7...5.3.4.......6........58.4...2...6...3...9.8.7.......1',
    '.....1.2.3...4.5.....6....7..2.....1.8..9..3.4.....8..5....2....9..3.4....67.....'
 ];
-console.log("start");
+var t0 = performance.now();
 _.range(50).forEach(function () {
    testset2.forEach(function (vec) {
       sudoku().doit(vec.replace(/\./g, '0'));
    });
 });
-console.log("stop");
+var t1 = performance.now();
+console.log( (t1 - t0) + " milliseconds.")
