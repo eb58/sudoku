@@ -1,32 +1,39 @@
 /* global sudokuSolver */
 // http://www.sudokubum.com/
 var sudoku = function () {
+   var ss = sudokuSolver();
    function init(s) {
       var res = [];
-      s.split('').forEach(function (v, i) {
+      s.replace(/\./g, '0').split('').forEach(function (v, i) {
          res[i] = Number(v);
       });
       return res;
    }
 
-   function dump(msg, fld) {
-      var s = '';
-      fld.forEach(function (v) {
-         s += v===0?'.':v;
-      });
-      console.log(msg + ':' + s + '\n');
+   function dump(msg, s) {
+      console.log(msg + ':' + s);
    }
 
    function doit(s) {
-      var fld = init(s);
-      //dump('IN ', fld);
-      var res = sudokuSolver().solve(fld);
-      //dump('OUT', res);
+      return ss.solve(init(s)).join('');
    }
+   
+   function doit2(s) {
+      //dump('IN ', s);
+      var res = doit(s);
+      //dump('OUT', res);
+      return res;
+   }
+   
    return {
-      doit: doit
+      doit: doit,
+      doit2: doit2
    };
 };
+
+var testset0 = [
+   '.2..5.7..4..1....68....3...2....8..3.4..2.5.....6...1...2.9.....9......57.4...9..',
+];
 
 var testset1 = [
    '2..863.......1259.1.8.946....3...18.7.1....3.6.9.2...7.3.647....6.158..25.....8.4',
@@ -40,7 +47,6 @@ var testset1 = [
 ];
 
 var testset2 = [
-   '..............3.85..1.2.......5.7.....4...1...9.......5......73..2.1........4...9',
    '.......12........3..23..4....18....5.6..7.8.......9.....85.....9...4.5..47...6...',
    '.2..5.7..4..1....68....3...2....8..3.4..2.5.....6...1...2.9.....9......57.4...9..',
    '........3..1..56...9..4..7......9.5.7.......8.5.4.2....8..2..9...35..1..6........',
@@ -62,10 +68,13 @@ var testset2 = [
    '.....1.2.3...4.5.....6....7..2.....1.8..9..3.4.....8..5....2....9..3.4....67.....'
 ];
 var t0 = performance.now();
-_.range(50).forEach(function () {
+var ss = sudoku();
+_.range(1).forEach(function () {
    testset2.forEach(function (vec) {
-      sudoku().doit(vec.replace(/\./g, '0'));
+      sudoku().doit2(vec);
    });
 });
 var t1 = performance.now();
-console.log( (t1 - t0) + " milliseconds.")
+console.log((t1 - t0) + " millisecond.")
+
+   
