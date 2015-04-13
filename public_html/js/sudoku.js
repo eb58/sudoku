@@ -19,9 +19,9 @@ var sudoku = function () {
    }
    
    function doit2(s) {
-      //dump('IN ', s);
+      dump('IN ', s);
       var res = doit(s);
-      //dump('OUT', res);
+      dump('OUT', res);
       return res;
    }
    
@@ -30,10 +30,6 @@ var sudoku = function () {
       doit2: doit2
    };
 };
-
-var testset0 = [
-   '.2..5.7..4..1....68....3...2....8..3.4..2.5.....6...1...2.9.....9......57.4...9..',
-];
 
 var testset1 = [
    '2..863.......1259.1.8.946....3...18.7.1....3.6.9.2...7.3.647....6.158..25.....8.4',
@@ -70,8 +66,13 @@ var testset2 = [
 var t0 = performance.now();
 var ss = sudoku();
 _.range(1).forEach(function () {
+   testset.forEach(function (vec) {
+      sudoku().doit(vec);
+   });
+});
+_.range(1).forEach(function () {
    testset2.forEach(function (vec) {
-      sudoku().doit2(vec);
+      sudoku().doit(vec);
    });
 });
 var t1 = performance.now();
