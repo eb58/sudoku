@@ -66,7 +66,7 @@ var testset2 = [
 var t0 = performance.now();
 var ss = sudoku();
 _.range(1).forEach(function () {
-   testset.forEach(function (vec) {
+   testset1.forEach(function (vec) {
       sudoku().doit(vec);
    });
 });

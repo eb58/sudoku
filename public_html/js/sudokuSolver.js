@@ -39,7 +39,7 @@ var sudokuSolver = (function () {
 
    function getBestCandidates(m) {
       var minLength = 100000;
-      var bestCandidates = null;
+      var bestCandidates = {n:-1,cand:[]};
       for (var i = 0; i < DIMSQR; i++){
          if (m.fld[i] !== 0) continue;
          var c = getCandidates(m, i);
@@ -62,12 +62,11 @@ var sudokuSolver = (function () {
          if (m.cnt === DIMSQR)
             return res = _.extend([], m.fld);
          var c = getBestCandidates(m);
-         if( c ) for (var i = 0; i < c.cand.length; i++) {
+         for (var i = 0; i < c.cand.length; i++) {
             setVal(m, c.n, c.cand[i]);
             fill(m);
             if(  !res ) unsetVal(m, c.n);
          }
-
       }(model);
       return res;
    }
