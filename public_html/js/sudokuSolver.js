@@ -5,14 +5,24 @@ var sudokuSolver = (function () {
     var DIMSQR = DIM * DIM; //  81
     var dump = function dump(m) {
         var s = '';
-        for (var i = 0; i < 81; i++) {
-            s += (i % 9 === 0 ? '\n' : '') + sprintf("[%s] %-1s ", m.fld[i], '');
+        for (var i = 0; i < DIMSQR; i++) {
+            s += (i % DIM === 0 ? '\n' : '') + sprintf("[%s] ", m.fld[i]);
         }
         console.log(s);
     };
     var FLDSINBLK = _.range(DIM).map(function (b) {
         return _.range(DIM).map(function (n) {
             return ([0, 3, 6, 27, 30, 33, 54, 57, 60])[b] + ([0, 1, 2, 9, 10, 11, 18, 19, 20])[n];
+        });
+    });
+    var FLDSINROW = _.range(DIM).map(function (r) {
+        return _.range(DIM).map(function (c) {
+            return c + r * DIM;
+        });
+    });
+    var FLDSINCOL = _.range(DIM).map(function (c) {
+        return _.range(DIM).map(function (r) {
+            return c + r * DIM;
         });
     });
 
@@ -65,24 +75,26 @@ var sudokuSolver = (function () {
     function getBestCandidates(m) { // returns entry with shortest list of candidates  
         var bestCandidates = null;
         m.cand = [];
-        for (var i = 0; i < DIMSQR; i++)
-            if (!m.fld[i]) {
-                var c = getCandidates(m, i);
-                if (c.cnt === 1)
-                    return {n: i, cand: c};
-                if (!bestCandidates || c.cnt < bestCandidates.cand.cnt) {
-                    bestCandidates = {n: i, cand: c};
-                }
-                m.cand[i] = c;
+        //var r = m.emptyFlds;//shuffle(m.emptyFlds);
+        for (var i = 0; i < DIMSQR; i++) {
+            if (m.fld[i] !== 0)
+                continue;
+            var c = getCandidates(m, i);
+            if (c.cnt === 1)
+                return {n: i, cand: c};
+            if (!bestCandidates || c.cnt < bestCandidates.cand.cnt) {
+                bestCandidates = {n: i, cand: c};
             }
+            m.cand[i] = c;
+        }
         return bestCandidates;
     }
 
-    function findHiddenNaked(m) {
-        for (var v = 1; v <= DIM; v++) { // all possible values of fld = 1,2,3,..9
+    function findHN(m, FLDS) {
+        for (var v = 1; v <= DIM; v++) { // all possible values of fld = 1,2,3,...,9
             var mask = 1 << v;
             for (var b = 0; b < DIM; b++) { // all blocks ( or  cols or rows )
-                var cnt = 0, fld = -1, flds = FLDSINBLK[b];
+                var cnt = 0, fld = -1, flds = FLDS[b];
                 for (var i = 0; i < flds.length; i++) { // all fields of fieldset
                     var x = m.cand[flds[i]];
                     if (x && (x.vals & mask)) {
@@ -92,7 +104,7 @@ var sudokuSolver = (function () {
                     }
                 }
                 if (cnt === 1) {
-                    //console.log("Naked Single: ", v, ' Block ', b, " Cell:", fld, flds);
+                    //console.log("Naked Single: ", v, " Cell:", fld, flds);
                     //dump(m);
                     return {n: fld, cand: {cnt: 1, vals: (1 << v)}};
                 }
@@ -101,9 +113,20 @@ var sudokuSolver = (function () {
         return null;
     }
 
+    function findHiddenNaked(m) {
+        return findHN(m, FLDSINBLK) || findHN(m, FLDSINROW) || findHN(m, FLDSINCOL);
+    }
+
     function solve(vec) { // sudoku as array vec = [ 0, 3, 5, ...]
         statn = 0;
-        var model = {fld: [], cand: [], cnt: 0, usedRow: [], usedCol: [], usedBlk: []};
+        var model = {
+            cnt: 0,
+            fld: [],
+            cand: [],
+            usedRow: [],
+            usedCol: [],
+            usedBlk: []
+        };
         vec.forEach(function (v, n) {  // init
             setVal(model, n, v);
         });
@@ -117,14 +140,14 @@ var sudokuSolver = (function () {
                 if (hn)
                     c = hn;
             }
-            if (c) {
-                for (var i = 1; i <= DIM; i++) {
-                    if (c.cand.vals & (1 << i)) {
-                        setVal(m, c.n, i);
-                        fill(m);
-                        if (!res)
-                            unsetVal(m, c.n);
-                    }
+            if (!c)
+                return;
+            for (var i = 1; i <= DIM; i++) {
+                if (c.cand.vals & (1 << i)) {
+                    setVal(m, c.n, i);
+                    fill(m);
+                    if (!res)
+                        unsetVal(m, c.n);
                 }
             }
         }(model);
