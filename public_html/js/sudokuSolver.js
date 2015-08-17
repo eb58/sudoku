@@ -1,10 +1,7 @@
-/* global _ */
-
 var sudokuSolver = (function () {
     var statn = 0;
     var DIM = 9;
-    var DIMSQRT = Math.sqrt(DIM); //3
-    var DIMSQR = DIM * DIM; //  81
+    var DIMSQR = 81; //  81
     var dump = function dump(m) {
         var s = '';
         for (var i = 0; i < DIMSQR; i++) {
@@ -17,39 +14,35 @@ var sudokuSolver = (function () {
         }
         console.log(s);
     };
-    var FLDSINBLK = _.range(DIM).map(function (b) {
-        return _.range(DIM).map(function (n) {
-            return ([0, 3, 6, 27, 30, 33, 54, 57, 60])[b] + ([0, 1, 2, 9, 10, 11, 18, 19, 20])[n];
-        });
+
+    var ALL = _.range(81);
+    var COORD = _.map(ALL, function (n) {
+        var r = Math.floor(n / 9);
+        var c = n % 9;
+        var b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+        return {r: r, c: c, b: b};
     });
-    var FLDSINROW = _.range(DIM).map(function (r) {
-        return _.range(DIM).map(function (c) {
-            return c + r * DIM;
-        });
-    });
-    var FLDSINCOL = _.range(DIM).map(function (c) {
-        return _.range(DIM).map(function (r) {
-            return c + r * DIM;
-        });
-    });
-    var all = _.range(DIMSQR).map(function (n) {
-        return n;
-    });
+    var FLDSINBLK = [[], [], [], [], [], [], [], [], []];
+    var FLDSINROW = [[], [], [], [], [], [], [], [], []];
+    var FLDSINCOL = [[], [], [], [], [], [], [], [], []];
+    for (var i = 0; i < 81; i++) {
+        var c = COORD[i];
+        FLDSINROW[c.r].push(i);
+        FLDSINCOL[c.c].push(i);
+        FLDSINBLK[c.b].push(i);
+    }
 
     function setUsedFlags(m, n, v, flag) {
-        var r = Math.floor(n / DIM);
-        var c = n % DIM;
-        var b = Math.floor(r / DIMSQRT) * DIMSQRT + Math.floor(c / DIMSQRT);
+        var o = COORD[n];
+        var mask = (1 << v);
         if (flag) {
-            var mask = (1 << v);
-            m.usedRow[r] |= mask;
-            m.usedCol[c] |= mask;
-            m.usedBlk[b] |= mask;
+            m.usedRow[o.r] |= mask;
+            m.usedCol[o.c] |= mask;
+            m.usedBlk[o.b] |= mask;
         } else {
-            var mask = ~(1 << v);
-            m.usedRow[r] &= mask;
-            m.usedCol[c] &= mask;
-            m.usedBlk[b] &= mask;
+            m.usedRow[o.r] &= ~mask;
+            m.usedCol[o.c] &= ~mask;
+            m.usedBlk[o.b] &= ~mask;
         }
     }
 
@@ -68,14 +61,11 @@ var sudokuSolver = (function () {
     }
 
     function getCandidates(m, n) {  // Candidates for m[n]
-        var r = Math.floor(n / DIM);
-        var c = n % DIM;
-        var b = Math.floor(r / DIMSQRT) * DIMSQRT + Math.floor(c / DIMSQRT);
-        var res = {cnt: 0, vals: 0};
-        for (var v = 1; v <= DIM; v++) {
-            var mask = 1 << v;
-            if (!(m.usedCol[c] & mask || m.usedRow[r] & mask || m.usedBlk[b] & mask)) {
-                res.vals |= mask;
+        var o = COORD[n];
+        var unsetbits = ~(m.usedRow[o.r] | m.usedCol[o.c] | m.usedBlk[o.b]);
+        var res = {cnt: 0, vals: unsetbits};
+        for (var v = 1; v <= 9; v++) {
+            if (unsetbits & (1 << v)) {
                 res.cnt++;
             }
         }
@@ -85,8 +75,9 @@ var sudokuSolver = (function () {
     function getBestCandidates(m) { // returns entry with shortest list of candidates  
         var bestCandidates = null;
         m.cand = [];
-        for (var r = 0; r < m.empty.length; r++) {
-            var i = m.empty[r];
+        var empty = m.empty;
+        for (var r = 0; r < empty.length; r++) {
+            var i = empty[r];
             if (m.fld[i] !== 0)
                 continue;
             var c = getCandidates(m, i);
@@ -101,12 +92,13 @@ var sudokuSolver = (function () {
     }
 
     function findHN(m, FLDS) {
-        for (var v = 1; v <= DIM; v++) { // all possible values of fld = 1,2,3,...,9
-            for (var n = 0; n < DIM; n++) { // all blocks ( or  cols or rows )
+        for (var v = 1; v <= 9; v++) { // all possible values of fld = 1,2,3,...,9
+            var mask = 1 << v;
+            for (var n = 0; n < 9; n++) { // all blocks ( or  cols or rows )
                 var cnt = 0, fld = -1, flds = FLDS[n];
                 for (var i = 0; i < flds.length; i++) { // all fields of fieldset
                     var x = m.cand[flds[i]];
-                    if (x && (x.vals & 1 << v)) {
+                    if (x && (x.vals & mask)) {
                         if (++cnt > 1)
                             break;
                         fld = flds[i];
@@ -115,7 +107,7 @@ var sudokuSolver = (function () {
                 if (cnt === 1) {
                     //console.log(">>> Naked Single: ", v, " Cell:", fld, flds);
                     //dump(m);
-                    return {n: fld, cand: {cnt: 1, vals: (1 << v)}};
+                    return {n: fld, cand: {cnt: 1, vals: mask}};
                 }
             }
         }
@@ -128,16 +120,20 @@ var sudokuSolver = (function () {
 
     function findPairs(m) {
         for (var i = 0; i < m.cand.length; i++) { // all fields of fieldset
-            var x = m.cand[i];
-            if (x === undefined)
+            var c1 = m.cand[i];
+            if (c1 === undefined || c1.cnt !== 2)
                 continue;
+            var o1 = COORD[i];
             for (var j = i + 1; j < m.cand.length; j++) { // all fields of fieldset
-                var y = m.cand[j];
-                if (y === undefined)
+                var c2 = m.cand[j];
+                if (c2 === undefined || c2.cnt !== 2)
                     continue;
-                if (x.cnt===2 && x.vals === y.vals) {
-                    console.log('PAIR found', x, y, i, j);
-                    dump(m);
+                if (c1.vals === c2.vals) {
+                    var o2 = COORD[j];
+                    if (o1.r === o2.r) {
+                        console.log('PAIR found', c1, i, j);
+                        dump(m);
+                    }
                 }
             }
         }
@@ -148,14 +144,13 @@ var sudokuSolver = (function () {
         statn = 0;
         var model = {
             cnt: 0,
-            empty: [],
             fld: [],
             cand: [],
             usedRow: [],
             usedCol: [],
             usedBlk: []
         };
-        model.empty = _.filter(all, function (i) {
+        model.empty = _.filter(ALL, function (i) {
             return vec[i] === 0;
         });
         vec.forEach(function (v, n) {  // init
@@ -164,17 +159,17 @@ var sudokuSolver = (function () {
 
         var res = null;
         var fill = function fill(m) {
-            if (m.cnt === DIMSQR)
+            if (m.cnt === 81)
                 return res = _.extend([], m.fld);
             var c = getBestCandidates(m);
-            if (c && c.cand.cnt > 1) {
-                var hn = findHiddenNaked(m);
-                if (hn)
-                    c = hn;
-            }
             if (!c)
                 return;
-            for (var i = 1; i <= DIM; i++) {
+            if (c.cand.cnt > 1) {
+                var hn = findHiddenNaked(m);
+                c = hn ? hn : c;
+                //if( c.cand.cnt > 1 ) findPairs(m);
+            }
+            for (var i = 1; i <= 9; i++) {
                 if (c.cand.vals & (1 << i)) {
                     setVal(m, c.n, i);
                     fill(m);
