@@ -1,23 +1,22 @@
 var sudokuSolver = (function () {
    var statn = 0;
    var ALL = _.range(81);
-   var FLDSINBLK = [[], [], [], [], [], [], [], [], []];
-   var FLDSINROW = [[], [], [], [], [], [], [], [], []];
-   var FLDSINCOL = [[], [], [], [], [], [], [], [], []];
    var COORD = _.map(ALL, function (n) {
       var r = Math.floor(n / 9);
       var c = n % 9;
-      var b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
-      return {r: r, c: c, b: b};
+      return {r: r, c: c, b: Math.floor(r / 3) * 3 + Math.floor(c / 3)};
    });
+   var FLDSINBLK = [[], [], [], [], [], [], [], [], []];
+   var FLDSINROW = [[], [], [], [], [], [], [], [], []];
+   var FLDSINCOL = [[], [], [], [], [], [], [], [], []];
    for (var i = 0; i < 81; i++) {
       var c = COORD[i];
       FLDSINROW[c.r].push(i);
       FLDSINCOL[c.c].push(i);
       FLDSINBLK[c.b].push(i);
    }
-   
-   function initEmpty(m){
+
+   function initEmpty(m) {
       m.empty = _.filter(ALL, function (i) {
          return m.fld[i] === 0;
       });
@@ -32,15 +31,14 @@ var sudokuSolver = (function () {
 
    function setUsedFlags(m, n, v, flag) {
       var o = COORD[n];
-      var mask = (1 << v);
       if (flag) {
-         m.usedRow[o.r] |= mask;
-         m.usedCol[o.c] |= mask;
-         m.usedBlk[o.b] |= mask;
+         m.usedRow[o.r] |= 1 << v;
+         m.usedCol[o.c] |= 1 << v;
+         m.usedBlk[o.b] |= 1 << v;
       } else {
-         m.usedRow[o.r] &= ~mask;
-         m.usedCol[o.c] &= ~mask;
-         m.usedBlk[o.b] &= ~mask;
+         m.usedRow[o.r] &= ~(1 << v);
+         m.usedCol[o.c] &= ~(1 << v);
+         m.usedBlk[o.b] &= ~(1 << v);
       }
    }
 
@@ -73,18 +71,16 @@ var sudokuSolver = (function () {
    function getBestCandidates(m) { // returns entry with shortest list of candidates  
       var bestCandidates = null;
       m.cand = [];
-      var empty = m.empty;
-      for (var r = 0; r < empty.length; r++) {
-         var i = empty[r];
-         if (m.fld[i] !== 0)
+      for (var r = 0; r < m.empty.length; r++) {
+         if (m.fld[m.empty[r]] !== 0)
             continue;
-         var c = getCandidates(m, i);
+         var c = getCandidates(m, m.empty[r]);
          if (c.cnt === 1)
-            return {n: i, cand: c};
+            return {n: m.empty[r], cand: c};
          if (!bestCandidates || c.cnt < bestCandidates.cand.cnt) {
-            bestCandidates = {n: i, cand: c};
+            bestCandidates = {n: m.empty[r], cand: c};
          }
-         m.cand[i] = c;
+         m.cand[m.empty[r]] = c;
       }
       return bestCandidates;
    }
