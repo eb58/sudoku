@@ -12,7 +12,6 @@ module.exports = function (config) {
          {pattern: 'js/app/**/*.js', included: false},
          {pattern: 'js/test/**/*Spec.js', included: false},
          'public_html/js/vendor/*.js',
-         'public_html/js/test/test-main.js',
          'public_html/js/test/*.js'
          //'public_html/js/test/*.html'
          //'test/app.test.js',
