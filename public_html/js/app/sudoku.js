@@ -3,11 +3,7 @@
 var sudoku = function () {
    var ss = sudokuSolver();
    function init(s) {
-      var res = [];
-      s.replace(/\./g, '0').split('').forEach(function (v, i) {
-         res[i] = Number(v);
-      });
-      return res;
+      return s.replace(/\./g, '0').split('').map( v => Number(v) );
    }
 
    function dump(msg, s) {
