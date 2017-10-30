@@ -1,7 +1,7 @@
 var sudokuSolver = (function () {
    var statn = 0;
    var ALL = _.range(81);
-   var COORD = _.map(ALL, function (n) {
+   var COORD = ALL.map( function (n) {
       var r = Math.floor(n / 9);
       var c = n % 9;
       return {r: r, c: c, b: Math.floor(r / 3) * 3 + Math.floor(c / 3)};
@@ -17,15 +17,11 @@ var sudokuSolver = (function () {
    }
 
    function initEmpty(m) {
-      m.empty = _.filter(ALL, function (i) {
-         return m.fld[i] === 0;
-      });
+      m.empty = ALL.filter( i=>  m.fld[i] === 0 );
       for (var r = 0; r < m.empty.length; r++) {
          m.cand[m.empty[r]] = getCandidates(m, m.empty[r]);
       }
-      m.empty.sort(function (a, b) {
-         return (m.cand[b].cnt - m.cand[a].cnt);
-      });
+      m.empty.sort( (a, b) => (m.cand[b].cnt - m.cand[a].cnt));
 
    }
 
